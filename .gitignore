@@ -1,0 +1,26 @@
+# Build output
+target/
+*.class
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# IntelliJ
+.idea/
+*.iml
+
+# VS Code
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment / secrets - never commit real API keys if you add a hosted LLM provider
+.env
+application-local.yml

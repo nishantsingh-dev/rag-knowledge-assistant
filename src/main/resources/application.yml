@@ -1,0 +1,60 @@
+spring:
+  application:
+    name: rag-knowledge-assistant
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/ragdb
+    username: rag
+    password: rag
+
+  ai:
+    ollama:
+      base-url: http://localhost:11434
+      chat:
+        options:
+          model: llama3.2          # pull this via: docker exec -it rag-ollama ollama pull llama3.2
+      embedding:
+        options:
+          model: nomic-embed-text  # pull this via: docker exec -it rag-ollama ollama pull nomic-embed-text
+
+    vectorstore:
+      pgvector:
+        index-type: HNSW           # approximate nearest-neighbor index — fast similarity search
+        distance-type: COSINE_DISTANCE
+        dimensions: 768            # must match nomic-embed-text's output dimension
+        initialize-schema: true    # auto-creates the vector_store table on first run
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      group-id: rag-ingestion-group
+      auto-offset-reset: earliest   # if the app was down when a message was published, still process it on startup
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.nishant.ragassistant.event"
+
+app:
+  upload-dir: ./uploaded-docs   # where uploaded files are saved before the consumer processes them
+
+spring.data.redis:
+  host: localhost
+  port: 6379
+
+chat:
+  rate-limit:
+    max-requests: 10        # per window, per client - deliberately low for demo/testing purposes
+    window-seconds: 60
+  semantic-cache:
+    similarity-threshold: 0.92   # cosine similarity above this = "close enough" to reuse a cached answer
+    ttl-hours: 24
+
+server:
+  port: 8080
+
+logging:
+  level:
+    org.springframework.ai: DEBUG   # verbose while learning — turn down once things work

@@ -1,0 +1,61 @@
+# Everything this project needs to run locally, as containers.
+# Start with:  docker compose up -d
+# Stop with:   docker compose down          (add -v to also wipe data volumes)
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16     # Postgres 16 with the pgvector extension pre-installed
+    container_name: rag-postgres
+    environment:
+      POSTGRES_DB: ragdb
+      POSTGRES_USER: rag
+      POSTGRES_PASSWORD: rag
+    ports:
+      - "5432:5432"
+    volumes:
+      - rag_pg_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql   # enables the vector extension on first boot
+
+  redis:
+    image: redis:7-alpine
+    container_name: rag-redis
+    ports:
+      - "6379:6379"
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: rag-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - rag_ollama_data:/root/.ollama
+    # After first `docker compose up`, pull the models you need (one-time):
+    #   docker exec -it rag-ollama ollama pull llama3.2
+    #   docker exec -it rag-ollama ollama pull nomic-embed-text
+
+  kafka:
+    image: apache/kafka:latest
+    container_name: rag-kafka
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@rag-kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+    volumes:
+      - rag_kafka_data:/var/lib/kafka/data
+
+volumes:
+  rag_pg_data:
+  rag_ollama_data:
+  rag_kafka_data:
