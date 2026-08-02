@@ -24,3 +24,5 @@ Thumbs.db
 # Environment / secrets - never commit real API keys if you add a hosted LLM provider
 .env
 application-local.yml
+
+uploaded-docs/
