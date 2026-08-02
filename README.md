@@ -11,8 +11,8 @@ rate limiter (stop one client from exhausting your LLM budget).
 |---|---|---|
 | 1 | Upload → extract → chunk → embed → store. Ask → retrieve → prompt → answer with citations. | ✅ Done |
 | 2 | Kafka: upload publishes an event, a consumer does the actual ingestion work asynchronously | ✅ Done |
-| **3 (this code)** | Redis: semantic cache in front of the LLM call, rate limiter in front of `/chat` | Build this now |
-| 4 | Docker Compose for everything, polish, push to GitHub | Not yet built |
+| 3 | Redis: semantic cache in front of the LLM call, rate limiter in front of `/chat` | ✅ Done |
+| 4 | Docker Compose for everything, polish, push to GitHub | ✅ Done |
 
 ## What's in this zip
 
